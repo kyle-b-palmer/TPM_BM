@@ -1,0 +1,11 @@
+/build/
+/build-*/
+/third_party/
+/.vscode/
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+.DS_Store
+agent-tools/

@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host-sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build gcc
+      - name: Configure host_sim
+        run: cmake -S . -B build-host -G Ninja -DTPMBM_BUILD_FIRMWARE=OFF
+      - name: Build
+        run: cmake --build build-host
+      - name: Test
+        run: ctest --test-dir build-host --output-on-failure
+
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build gcc-arm-none-eabi binutils-arm-none-eabi git
+      - name: Fetch STM32 deps
+        run: ./scripts/fetch-deps.sh
+      - name: Configure firmware
+        run: >
+          cmake -S . -B build-fw -G Ninja
+          -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-none-eabi.cmake
+          -DTPMBM_BUILD_FIRMWARE=ON
+          -DTPMBM_BUILD_HOST=OFF
+      - name: Build firmware
+        run: cmake --build build-fw
